@@ -35,42 +35,42 @@ async def main():
                 st.error(f"Failed to process Data: {e}")
             
 
-    if "chat_history" not in st.session_state:
-        st.session_state.chat_history = [AIMessage(content="Hello, I am a bot. How can I help you?")]
+        if "chat_history" not in st.session_state:
+            st.session_state.chat_history = [AIMessage(content="Hello, I am a bot. How can I help you?")]
 
-    st.title("RAG CHAT")
-    for message in st.session_state.chat_history:
-        if isinstance(message, AIMessage):
-            with st.chat_message("AI"):
-                st.write(message.content)
-        elif isinstance(message, HumanMessage):
+        st.title("RAG CHAT")
+        for message in st.session_state.chat_history:
+            if isinstance(message, AIMessage):
+                with st.chat_message("AI"):
+                    st.write(message.content)
+            elif isinstance(message, HumanMessage):
+                with st.chat_message("Human"):
+                    st.write(message.content)
+
+        user_query = st.text_input("Type your message here...", key="chat_input")
+        if user_query:
+            st.session_state.chat_history.append(HumanMessage(content=user_query))
             with st.chat_message("Human"):
-                st.write(message.content)
+                st.write(user_query)
 
-    user_query = st.text_input("Type your message here...", key="chat_input")
-    if user_query:
-        st.session_state.chat_history.append(HumanMessage(content=user_query))
-        with st.chat_message("Human"):
-            st.write(user_query)
-
-        if 'retriever' in st.session_state:
-            try:
-                with st.spinner("Retrieving Information..."):
-                    ragAnswer = await st.session_state.retriever.amax_marginal_relevance_search(user_query, k=2, fetch_k=10)
-                context = []
-                for i, doc in enumerate(ragAnswer):
-                    print(f"{i}: {doc.page_content}")
-                    context.append(doc.page_content)
-                with st.spinner("Generating Response"):
-                    response = get_response(user_query, st.session_state.chat_history, context)
-                if response:
-                    st.session_state.chat_history.append(AIMessage(content=response))
-                    with st.chat_message("AI"):
-                        st.write(response)
-                else:
-                    st.write("No response received.") 
-            except Exception as e:
-                st.error(f"Error during retrieval or response generation: {e}")
+            if 'retriever' in st.session_state:
+                try:
+                    with st.spinner("Retrieving Information..."):
+                        ragAnswer = await st.session_state.retriever.amax_marginal_relevance_search(user_query, k=2, fetch_k=10)
+                    context = []
+                    for i, doc in enumerate(ragAnswer):
+                        print(f"{i}: {doc.page_content}")
+                        context.append(doc.page_content)
+                    with st.spinner("Generating Response"):
+                        response = get_response(user_query, st.session_state.chat_history, context)
+                    if response:
+                        st.session_state.chat_history.append(AIMessage(content=response))
+                        with st.chat_message("AI"):
+                            st.write(response)
+                    else:
+                        st.write("No response received.") 
+                except Exception as e:
+                    st.error(f"Error during retrieval or response generation: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())

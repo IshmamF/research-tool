@@ -34,11 +34,8 @@ def get_response(user_query, chat_history, context):
         })
         if value:
             response = " ".join([part for part in value])
-            print(response)
             return response
         else:
-            print("Empty response from API")
             return "No response received from model."
     except Exception as e:
-        print(e)  
         return f"Error in generating response: {str(e)}"
